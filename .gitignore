@@ -1,0 +1,22 @@
+# Dependencies (PebbleHost / 平台会自动 npm install)
+node_modules/
+
+# Environment / secrets (在平台面板里单独配置，不要提交)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PebbleHost Git Management 输出
+.gitlog.txt
+
+# Editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
