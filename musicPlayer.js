@@ -37,16 +37,6 @@ function isYouTubeUrl(url) {
     return /(?:youtube\.com\/(?:watch\?|shorts\/|embed\/|live\/)|youtu\.be\/)/i.test(url);
 }
 
-// Basic Bilibili URL validation (normal links + b23.tv short links)
-function isBilibiliUrl(url) {
-    return /(?:bilibili\.com\/|b23\.tv\/)/i.test(url);
-}
-
-// Any source we route through yt-dlp
-function isSupportedUrl(url) {
-    return isYouTubeUrl(url) || isBilibiliUrl(url);
-}
-
 // Fetch video metadata (title, duration) via yt-dlp
 async function getVideoInfo(url) {
     const info = await youtubedl(url, {
@@ -130,8 +120,8 @@ class MusicPlayer {
             let title;
             let duration;
             
-            // YouTube or Bilibili → extract via yt-dlp
-            if (isSupportedUrl(url)) {
+            // YouTube → extract via yt-dlp
+            if (isYouTubeUrl(url)) {
                 console.log('Getting video info for:', url);
                 const info = await getVideoInfo(url);
                 title = info.title;
@@ -149,7 +139,7 @@ class MusicPlayer {
                 }
             }
             else {
-                throw new Error('Unsupported URL format. Please use YouTube or Bilibili URLs.');
+                throw new Error('Unsupported URL format. Please use YouTube URLs.');
             }
 
             // Kill any previous yt-dlp process for this guild
@@ -224,8 +214,8 @@ class MusicPlayer {
             // Initialize ytdl-core if not already done
             await this.initialize();
             
-            // YouTube or Bilibili → extract via yt-dlp
-            if (isSupportedUrl(url)) {
+            // YouTube → extract via yt-dlp
+            if (isYouTubeUrl(url)) {
                 console.log('Getting video info for queue:', url);
                 const info = await getVideoInfo(url);
                 console.log('Video title for queue:', info.title);
@@ -240,7 +230,7 @@ class MusicPlayer {
                 return songInfo;
             }
             else {
-                throw new Error('Unsupported URL format. Please use YouTube or Bilibili URLs.');
+                throw new Error('Unsupported URL format. Please use YouTube URLs.');
             }
         } catch (error) {
             console.error('Error adding to queue:', error);
