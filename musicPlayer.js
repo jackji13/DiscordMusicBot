@@ -8,9 +8,18 @@ const {
     getVoiceConnection
 } = require('@discordjs/voice');
 const youtubedl = require('youtube-dl-exec');
+const fs = require('fs');
+const path = require('path');
 
 // Tell @discordjs/voice (prism-media) which ffmpeg binary to use
 process.env.FFMPEG_PATH = require('ffmpeg-static');
+
+// Optional cookies file to bypass YouTube "Sign in to confirm you're not a bot".
+// Put a Netscape-format cookies.txt next to this file, or set YTDLP_COOKIES env var.
+const COOKIES_PATH = process.env.YTDLP_COOKIES || path.join(__dirname, 'cookies.txt');
+function cookieOpts() {
+    return fs.existsSync(COOKIES_PATH) ? { cookies: COOKIES_PATH } : {};
+}
 
 // Basic YouTube URL validation
 function isYouTubeUrl(url) {
@@ -23,6 +32,7 @@ async function getVideoInfo(url) {
         dumpSingleJson: true,
         noWarnings: true,
         noPlaylist: true,
+        ...cookieOpts(),
     });
     return info;
 }
@@ -35,6 +45,7 @@ function createYtdlpStream(url) {
         quiet: true,
         noWarnings: true,
         noPlaylist: true,
+        ...cookieOpts(),
     }, { stdio: ['ignore', 'pipe', 'ignore'] });
 
     subprocess.catch(() => {}); // swallow broken-pipe errors on skip/stop

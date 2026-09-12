@@ -6,6 +6,9 @@ node_modules/
 .env.*
 !.env.example
 
+# YouTube cookies (敏感，绝不要提交)
+cookies.txt
+
 # Logs
 *.log
 npm-debug.log*
