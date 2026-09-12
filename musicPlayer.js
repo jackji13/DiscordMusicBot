@@ -37,6 +37,16 @@ function isYouTubeUrl(url) {
     return /(?:youtube\.com\/(?:watch\?|shorts\/|embed\/|live\/)|youtu\.be\/)/i.test(url);
 }
 
+// Basic Bilibili URL validation (normal links + b23.tv short links)
+function isBilibiliUrl(url) {
+    return /(?:bilibili\.com\/|b23\.tv\/)/i.test(url);
+}
+
+// Any source we route through yt-dlp
+function isSupportedUrl(url) {
+    return isYouTubeUrl(url) || isBilibiliUrl(url);
+}
+
 // Fetch video metadata (title, duration) via yt-dlp
 async function getVideoInfo(url) {
     const info = await youtubedl(url, {
@@ -120,8 +130,8 @@ class MusicPlayer {
             let title;
             let duration;
             
-            // Check if it's a YouTube URL
-            if (isYouTubeUrl(url)) {
+            // YouTube or Bilibili → extract via yt-dlp
+            if (isSupportedUrl(url)) {
                 console.log('Getting video info for:', url);
                 const info = await getVideoInfo(url);
                 title = info.title;
@@ -138,17 +148,8 @@ class MusicPlayer {
                     throw new Error('Could not get audio stream from this video');
                 }
             }
-            // Check if it's a Bilibili URL (basic support)
-            else if (url.includes('bilibili.com')) {
-                // For Bilibili, we'll need a different approach
-                // This is a simplified version - you might need additional libraries for full Bilibili support
-                if (interaction.editReply) {
-                    await interaction.editReply('⚠️ Bilibili 支持有限，建议使用 YouTube 链接以获得最佳效果。');
-                }
-                return;
-            }
             else {
-                throw new Error('Unsupported URL format. Please use YouTube URLs.');
+                throw new Error('Unsupported URL format. Please use YouTube or Bilibili URLs.');
             }
 
             // Kill any previous yt-dlp process for this guild
@@ -223,8 +224,8 @@ class MusicPlayer {
             // Initialize ytdl-core if not already done
             await this.initialize();
             
-            // Check if it's a YouTube URL
-            if (isYouTubeUrl(url)) {
+            // YouTube or Bilibili → extract via yt-dlp
+            if (isSupportedUrl(url)) {
                 console.log('Getting video info for queue:', url);
                 const info = await getVideoInfo(url);
                 console.log('Video title for queue:', info.title);
@@ -238,16 +239,8 @@ class MusicPlayer {
                 this.addToQueue(guildId, songInfo);
                 return songInfo;
             }
-            // Check if it's a Bilibili URL (basic support)
-            else if (url.includes('bilibili.com')) {
-                // For Bilibili, we'll need a different approach
-                if (interaction.editReply) {
-                    await interaction.editReply('⚠️ Bilibili 支持有限，建议使用 YouTube 链接以获得最佳效果。');
-                }
-                return null;
-            }
             else {
-                throw new Error('Unsupported URL format. Please use YouTube URLs.');
+                throw new Error('Unsupported URL format. Please use YouTube or Bilibili URLs.');
             }
         } catch (error) {
             console.error('Error adding to queue:', error);
