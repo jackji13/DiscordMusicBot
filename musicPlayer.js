@@ -17,8 +17,19 @@ process.env.FFMPEG_PATH = require('ffmpeg-static');
 // Optional cookies file to bypass YouTube "Sign in to confirm you're not a bot".
 // Put a Netscape-format cookies.txt next to this file, or set YTDLP_COOKIES env var.
 const COOKIES_PATH = process.env.YTDLP_COOKIES || path.join(__dirname, 'cookies.txt');
-function cookieOpts() {
-    return fs.existsSync(COOKIES_PATH) ? { cookies: COOKIES_PATH } : {};
+
+// Common yt-dlp options.
+// - jsRuntimes: yt-dlp needs a JS runtime to solve signature challenges; use this
+//   process's own node binary so it always resolves correctly under pm2/systemd.
+// - cookies: attached only if a cookies file is present.
+// The bgutil PO Token provider (HTTP server on 127.0.0.1:4416) is picked up
+// automatically by the installed yt-dlp plugin, no extra flag needed.
+function ytdlpCommonOpts() {
+    const opts = { jsRuntimes: `node:${process.execPath}` };
+    if (fs.existsSync(COOKIES_PATH)) {
+        opts.cookies = COOKIES_PATH;
+    }
+    return opts;
 }
 
 // Basic YouTube URL validation
@@ -32,7 +43,7 @@ async function getVideoInfo(url) {
         dumpSingleJson: true,
         noWarnings: true,
         noPlaylist: true,
-        ...cookieOpts(),
+        ...ytdlpCommonOpts(),
     });
     return info;
 }
@@ -45,7 +56,7 @@ function createYtdlpStream(url) {
         quiet: true,
         noWarnings: true,
         noPlaylist: true,
-        ...cookieOpts(),
+        ...ytdlpCommonOpts(),
     }, { stdio: ['ignore', 'pipe', 'ignore'] });
 
     subprocess.catch(() => {}); // swallow broken-pipe errors on skip/stop
